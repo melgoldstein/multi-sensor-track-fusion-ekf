@@ -1,0 +1,18 @@
+name: verification
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: ['3.11', '3.12']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - run: pip install '.[test]' build ruff
+      - run: ruff check --select E9,F63,F7,F82 src tests
+      - run: ruff format --check src tests
+      - run: pytest -q
+      - run: python -m build

@@ -1,0 +1,54 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "timestamp": {
+      "minimum": 0,
+      "title": "Timestamp",
+      "type": "number"
+    },
+    "sensor": {
+      "enum": [
+        "radar",
+        "optical"
+      ],
+      "title": "Sensor",
+      "type": "string"
+    },
+    "bearing_rad": {
+      "title": "Bearing Rad",
+      "type": "number"
+    },
+    "range_m": {
+      "anyOf": [
+        {
+          "exclusiveMinimum": 0,
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Range M"
+    },
+    "bearing_std": {
+      "default": 0.005,
+      "exclusiveMinimum": 0,
+      "title": "Bearing Std",
+      "type": "number"
+    },
+    "range_std": {
+      "default": 10,
+      "exclusiveMinimum": 0,
+      "title": "Range Std",
+      "type": "number"
+    }
+  },
+  "required": [
+    "timestamp",
+    "sensor",
+    "bearing_rad"
+  ],
+  "title": "Measurement",
+  "type": "object"
+}
