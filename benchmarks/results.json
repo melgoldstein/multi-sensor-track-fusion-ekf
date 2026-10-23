@@ -1,0 +1,12 @@
+{
+  "platform": "Windows-10-10.0.19045-SP0",
+  "python": "3.12.14",
+  "results": {
+    "native_ctypes": {
+      "median_us": 51.71497
+    },
+    "numpy": {
+      "median_us": 15.150825000000001
+    }
+  }
+}
