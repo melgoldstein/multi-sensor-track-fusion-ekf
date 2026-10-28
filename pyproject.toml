@@ -21,3 +21,7 @@ testpaths = ["tests"]
 
 [tool.setuptools.package-data]
 track_fusion = ["native/*.c"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py311"

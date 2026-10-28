@@ -29,7 +29,9 @@ def test_native_matches_joseph(core):
             )
             correction = np.eye(4) - gain @ jacobian
             expected = correction @ covariance @ correction.T + gain @ variance @ gain.T
-            posterior, uncertainty = core.update(state, covariance, jacobian, innovation, variance)
+            posterior, uncertainty = core.update(
+                state, covariance, jacobian, innovation, variance
+            )
             np.testing.assert_allclose(posterior, state + gain @ innovation, atol=1e-12)
             np.testing.assert_allclose(uncertainty, expected, atol=1e-12)
 
@@ -47,17 +49,26 @@ def test_association_and_rejection(core):
     manager.seed("near", np.array([1000.0, 100.0, 0.0, 0.0]), np.eye(4) * 10)
     manager.seed("far", np.array([2000.0, 500.0, 0.0, 0.0]), np.eye(4) * 10)
     report = Measurement(
-        timestamp=1, sensor="radar", range_m=np.hypot(1000, 100), bearing_rad=np.arctan2(100, 1000)
+        timestamp=1,
+        sensor="radar",
+        range_m=np.hypot(1000, 100),
+        bearing_rad=np.arctan2(100, 1000),
     )
     assert manager.ingest(report) == "near"
-    assert manager.ingest(report.model_copy(update={"timestamp": 2, "range_m": 100000.0})) is None
+    assert (
+        manager.ingest(report.model_copy(update={"timestamp": 2, "range_m": 100000.0}))
+        is None
+    )
     with pytest.raises(ValueError, match="out-of-order"):
         manager.ingest(report)
     assert wrap_angle(-np.pi - 0.01) == pytest.approx(np.pi - 0.01)
 
 
 def test_native_sources_match():
-    assert Path("csrc/ekf_step.c").read_bytes() == Path("src/native/ekf_step.c").read_bytes()
+    assert (
+        Path("csrc/ekf_step.c").read_bytes()
+        == Path("src/native/ekf_step.c").read_bytes()
+    )
 
 
 def test_rejects_unsafe_native_shapes(core):
@@ -74,7 +85,11 @@ def test_rejects_unsafe_native_shapes(core):
 def test_async_convergence_and_covariance(core):
     rng = np.random.default_rng(15)
     manager = TrackManager(core, acceleration_psd=0.01)
-    manager.seed("vessel", np.array([1010.0, 190.0, 4.0, 1.0]), np.diag([400.0, 400.0, 25.0, 25.0]))
+    manager.seed(
+        "vessel",
+        np.array([1010.0, 190.0, 4.0, 1.0]),
+        np.diag([400.0, 400.0, 25.0, 25.0]),
+    )
     errors = []
     accepted = 0
     for index in range(1, 201):

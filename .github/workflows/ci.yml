@@ -11,7 +11,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
-      - run: pip install '.[test]' build ruff
+      - run: pip install '.[test]' build ruff==0.17.3
       - run: ruff check --select E9,F63,F7,F82 src tests
       - run: ruff format --check src tests
       - run: pytest -q

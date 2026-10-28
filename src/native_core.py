@@ -37,7 +37,12 @@ class NativeCore:
     def __init__(self, path: Path):
         self.library = ctypes.CDLL(str(path.resolve()))
         pointer = np.ctypeslib.ndpointer(dtype=np.float64, flags="C_CONTIGUOUS")
-        self.library.ekf_predict.argtypes = [pointer, pointer, ctypes.c_double, ctypes.c_double]
+        self.library.ekf_predict.argtypes = [
+            pointer,
+            pointer,
+            ctypes.c_double,
+            ctypes.c_double,
+        ]
         self.library.ekf_predict.restype = ctypes.c_int
         self.library.ekf_update.argtypes = [
             pointer,
@@ -50,7 +55,9 @@ class NativeCore:
         self.library.ekf_update.restype = ctypes.c_int
 
     @staticmethod
-    def _state(state: np.ndarray, covariance: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    def _state(
+        state: np.ndarray, covariance: np.ndarray
+    ) -> tuple[np.ndarray, np.ndarray]:
         vector = np.array(state, dtype=np.float64, order="C", copy=True)
         matrix = np.array(covariance, dtype=np.float64, order="C", copy=True)
         if (
@@ -60,7 +67,9 @@ class NativeCore:
             or not np.isfinite(matrix).all()
             or not np.allclose(matrix, matrix.T, atol=1e-12)
         ):
-            raise ValueError("finite four-state vector and symmetric 4x4 covariance required")
+            raise ValueError(
+                "finite four-state vector and symmetric 4x4 covariance required"
+            )
         np.linalg.cholesky(matrix)
         return vector, matrix
 
@@ -94,12 +103,19 @@ class NativeCore:
                 np.isfinite(array).all()
                 for array in (residual, observation_matrix, measurement_covariance)
             )
-            or not np.allclose(measurement_covariance, measurement_covariance.T, atol=1e-12)
+            or not np.allclose(
+                measurement_covariance, measurement_covariance.T, atol=1e-12
+            )
         ):
             raise ValueError("invalid measurement dimensions, values or covariance")
         np.linalg.cholesky(measurement_covariance)
         if not self.library.ekf_update(
-            posterior, uncertainty, observation_matrix, residual, measurement_covariance, dimensions
+            posterior,
+            uncertainty,
+            observation_matrix,
+            residual,
+            measurement_covariance,
+            dimensions,
         ):
             raise ValueError("singular innovation covariance")
         return posterior, uncertainty

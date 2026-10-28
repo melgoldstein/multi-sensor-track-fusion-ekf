@@ -10,7 +10,9 @@ from .maha_association import linearize, mahalanobis_squared
 
 
 class Measurement(BaseModel):
-    model_config = ConfigDict(extra="forbid", frozen=True, allow_inf_nan=False, strict=True)
+    model_config = ConfigDict(
+        extra="forbid", frozen=True, allow_inf_nan=False, strict=True
+    )
     timestamp: float = Field(ge=0)
     sensor: Literal["radar", "optical"]
     bearing_rad: float
@@ -42,9 +44,16 @@ class TrackManager:
         self.last_timestamp = 0.0
 
     def seed(
-        self, identifier: str, state: np.ndarray, covariance: np.ndarray, timestamp: float = 0
+        self,
+        identifier: str,
+        state: np.ndarray,
+        covariance: np.ndarray,
+        timestamp: float = 0,
     ) -> None:
-        vector, matrix = np.asarray(state, dtype=float), np.asarray(covariance, dtype=float)
+        vector, matrix = (
+            np.asarray(state, dtype=float),
+            np.asarray(covariance, dtype=float),
+        )
         if (
             not identifier
             or identifier in self.tracks
@@ -69,10 +78,13 @@ class TrackManager:
             raise ValueError("out-of-order measurement")
         radar = report.sensor == "radar"
         observation = np.array(
-            [report.range_m, report.bearing_rad] if radar else [report.bearing_rad], dtype=float
+            [report.range_m, report.bearing_rad] if radar else [report.bearing_rad],
+            dtype=float,
         )
         variance = np.diag(
-            [report.range_std**2, report.bearing_std**2] if radar else [report.bearing_std**2]
+            [report.range_std**2, report.bearing_std**2]
+            if radar
+            else [report.bearing_std**2]
         )
         candidates = []
         for identifier, track in sorted(self.tracks.items()):
@@ -92,14 +104,18 @@ class TrackManager:
                 innovation, jacobian @ covariance @ jacobian.T + variance
             )
             if distance <= (9.21034 if radar else 6.63490):
-                candidates.append((distance, identifier, state, covariance, innovation, jacobian))
+                candidates.append(
+                    (distance, identifier, state, covariance, innovation, jacobian)
+                )
         self.last_timestamp = report.timestamp
         if not candidates:
             return None
         _, identifier, state, covariance, innovation, jacobian = min(
             candidates, key=lambda candidate: (candidate[0], candidate[1])
         )
-        posterior, uncertainty = self.core.update(state, covariance, jacobian, innovation, variance)
+        posterior, uncertainty = self.core.update(
+            state, covariance, jacobian, innovation, variance
+        )
         self.tracks[identifier] = Track(posterior, uncertainty, report.timestamp)
         return identifier
 
@@ -112,7 +128,9 @@ def main() -> None:
     arguments = parser.parse_args()
     manager = TrackManager(NativeCore(build_native(arguments.cc)))
     manager.seed(
-        "track-1", np.array([1000.0, 100.0, 5.0, 0.0]), np.diag([100.0, 100.0, 25.0, 25.0])
+        "track-1",
+        np.array([1000.0, 100.0, 5.0, 0.0]),
+        np.diag([100.0, 100.0, 25.0, 25.0]),
     )
     for timestamp in range(1, 11):
         position = np.array([1000 + 5 * timestamp, 100.0])
