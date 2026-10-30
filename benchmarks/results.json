@@ -3,10 +3,10 @@
   "python": "3.12.14",
   "results": {
     "native_ctypes": {
-      "median_us": 51.71497
+      "median_us": 52.808405
     },
     "numpy": {
-      "median_us": 15.150825000000001
+      "median_us": 15.24511
     }
   }
 }

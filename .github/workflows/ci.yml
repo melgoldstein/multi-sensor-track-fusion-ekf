@@ -1,5 +1,10 @@
 name: verification
 on: [push, pull_request]
+permissions:
+  contents: read
+concurrency:
+  group: verification-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -16,3 +21,4 @@ jobs:
       - run: ruff format --check src tests
       - run: pytest -q
       - run: python -m build
+      - run: track-fusion --cc gcc

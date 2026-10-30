@@ -4,32 +4,49 @@ import os
 from pathlib import Path
 import subprocess
 import sys
+import platform
+import uuid
 import numpy as np
 
 
 def build_native(compiler: str = "gcc") -> Path:
     source = Path(__file__).parent / "native" / "ekf_step.c"
-    identity = hashlib.sha256(source.read_bytes()).hexdigest()[:16]
+    fingerprint = (
+        source.read_bytes()
+        + f"{compiler}:{sys.platform}:{platform.machine()}:{ctypes.sizeof(ctypes.c_void_p)}".encode()
+    )
+    identity = hashlib.sha256(fingerprint).hexdigest()[:16]
     destination = Path.home() / ".cache" / "track-fusion" / identity
     destination.mkdir(parents=True, exist_ok=True)
     library = destination / ("ekf.dll" if sys.platform == "win32" else "libekf.so")
-    subprocess.run(
-        [
-            compiler,
-            "-std=c99",
-            "-O3",
-            "-Wall",
-            "-Wextra",
-            "-Werror",
-            "-shared",
-            "-fPIC",
-            str(source),
-            "-lm",
-            "-o",
-            str(library),
-        ],
-        check=True,
-    )
+    if library.is_file():
+        return library
+    candidate = destination / f"{uuid.uuid4().hex}{library.suffix}"
+    try:
+        subprocess.run(
+            [
+                compiler,
+                "-std=c99",
+                "-O3",
+                "-Wall",
+                "-Wextra",
+                "-Werror",
+                "-shared",
+                "-fPIC",
+                str(source),
+                "-lm",
+                "-o",
+                str(candidate),
+            ],
+            check=True,
+        )
+        try:
+            os.replace(candidate, library)
+        except OSError:
+            if not library.is_file():
+                raise
+    finally:
+        candidate.unlink(missing_ok=True)
     return library
 
 
@@ -79,6 +96,8 @@ class NativeCore:
         predicted, uncertainty = self._state(state, covariance)
         if not self.library.ekf_predict(predicted, uncertainty, dt, noise):
             raise ValueError("native prediction rejected")
+        if not np.isfinite(predicted).all() or not np.isfinite(uncertainty).all():
+            raise ValueError("prediction overflow")
         return predicted, uncertainty
 
     def update(
@@ -118,4 +137,6 @@ class NativeCore:
             dimensions,
         ):
             raise ValueError("singular innovation covariance")
+        if not np.isfinite(posterior).all() or not np.isfinite(uncertainty).all():
+            raise ValueError("update overflow")
         return posterior, uncertainty

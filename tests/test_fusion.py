@@ -71,6 +71,22 @@ def test_native_sources_match():
     )
 
 
+def test_reuses_loaded_library(core, monkeypatch):
+    def unexpected_compile(*args, **kwargs):
+        raise AssertionError("cached library must not be overwritten while loaded")
+
+    monkeypatch.setattr("track_fusion.native_core.subprocess.run", unexpected_compile)
+    assert build_native(os.environ.get("CC", "gcc")).is_file()
+
+
+def test_overflow_preserves_input(core):
+    state, covariance = np.ones(4), np.eye(4)
+    with pytest.raises(ValueError, match="overflow"):
+        core.predict(state, covariance, 1e200, 1)
+    np.testing.assert_array_equal(state, np.ones(4))
+    np.testing.assert_array_equal(covariance, np.eye(4))
+
+
 def test_rejects_unsafe_native_shapes(core):
     with pytest.raises(ValueError):
         core.predict(np.zeros(3), np.eye(4), 1, 1)
