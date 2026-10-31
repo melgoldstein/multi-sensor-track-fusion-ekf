@@ -27,5 +27,5 @@ line-length = 88
 target-version = "py311"
 
 [project.urls]
-Repository = "https://github.com/cankaan120/multi-sensor-track-fusion-ekf"
-Issues = "https://github.com/cankaan120/multi-sensor-track-fusion-ekf/issues"
+Repository = "https://github.com/melgoldstein/multi-sensor-track-fusion-ekf"
+Issues = "https://github.com/melgoldstein/multi-sensor-track-fusion-ekf/issues"

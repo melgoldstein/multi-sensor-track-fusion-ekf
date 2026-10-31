@@ -1,6 +1,8 @@
 # Multi-sensor track fusion EKF
 
-[![Verification](https://github.com/cankaan120/multi-sensor-track-fusion-ekf/actions/workflows/ci.yml/badge.svg)](https://github.com/cankaan120/multi-sensor-track-fusion-ekf/actions/workflows/ci.yml)
+[Portfolio: melgoldstein.com](https://melgoldstein.com/)
+
+[![Verification](https://github.com/melgoldstein/multi-sensor-track-fusion-ekf/actions/workflows/ci.yml/badge.svg)](https://github.com/melgoldstein/multi-sensor-track-fusion-ekf/actions/workflows/ci.yml)
 
 Four-state east/north position and velocity tracking with a C99 numerical core and
 Python association layer. Radar range/bearing and passive optical bearing reports
@@ -76,7 +78,7 @@ association, gating, angle wrap and source/package consistency. MIT.
 ## Development
 
 ```sh
-git clone https://github.com/cankaan120/multi-sensor-track-fusion-ekf.git
+git clone https://github.com/melgoldstein/multi-sensor-track-fusion-ekf.git
 cd multi-sensor-track-fusion-ekf
 python -m venv .venv
 # Activate .venv with your shell, then:
